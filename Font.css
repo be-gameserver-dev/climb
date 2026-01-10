@@ -1,0 +1,7 @@
+/* font.css */
+@font-face {
+    font-family: "Font";
+    src: url("./GameFont.ttf") format("truetype");
+    font-weight: normal;
+    font-style: normal;
+}
