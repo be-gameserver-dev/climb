@@ -1,1 +1,123 @@
-"use strict";const canvas=document.getElementById("screen"),ctx=canvas.getContext("2d");ctx.imageSmoothingEnabled=!1;const SCREEN_SIZE_X=15,SCREEN_SIZE_Y=12,TILE_SIZE=22;function GetTilePos(t,e){const a=canvas.width/15,i=canvas.height/12,n=Math.floor(7*a);return{x:Math.ceil(n+t*a),y:Math.ceil(e*i),w:Math.ceil(a),h:Math.ceil(i)}}const BG_tile_imgs={isLoaded:!1},Char_tile_imgs={isLoaded:!1},Dialog_tile_imgs={isLoaded:!1},BGimg=new Image;BGimg.src="./Assets/Image/BG.png";const Dialogimg=new Image;Dialogimg.src="./Assets/Image/dialog.png";const Charimg_cup=new Image,Charimg_kris=new Image;function createTile(t,e,a,i,n,o=1){const s=document.createElement("canvas");s.width=Math.round(i*o),s.height=Math.round(n*o);const c=s.getContext("2d");return c.imageSmoothingEnabled=!1,c.drawImage(t,Math.round(e),Math.round(a),Math.round(i),Math.round(n),0,0,s.width,s.height),s}function OnImageLoad(t,e,a,i,n=0){let o=n;for(let n=0;n<i;n++)for(let i=0;i<a;i++)e[o++]=createTile(t,22*i,22*n,22,22)}function clearScreen(){ctx.clearRect(0,0,canvas.width,canvas.height)}function DrawTile(t,e,a,i=!1,n=!1){if(!t)return;const o=GetTilePos(e,a);ctx.save(),ctx.translate(o.x+o.w/2,o.y+o.h/2),ctx.scale(i?-1:1,n?-1:1),ctx.imageSmoothingEnabled=!1,ctx.drawImage(t,-o.w/2,-o.h/2,o.w,o.h),ctx.restore()}BGimg.onload=()=>{OnImageLoad(BGimg,BG_tile_imgs,24,25),BG_tile_imgs.isLoaded=!0},Dialogimg.onload=()=>{OnImageLoad(Dialogimg,Dialog_tile_imgs,4,3),Dialog_tile_imgs.isLoaded=!0},Charimg_cup.onload=()=>{OnImageLoad(Charimg_cup,Char_tile_imgs,8,2),Charimg_kris.onload=()=>{OnImageLoad(Charimg_kris,Char_tile_imgs,8,3,Object.keys(Char_tile_imgs).length-1),Char_tile_imgs.isLoaded=!0},Charimg_kris.src="./Assets/Image/kris.png"},Charimg_cup.src="./Assets/Image/cuptain.png";const texts=new Map;function createUUID(){return crypto.randomUUID()}function getTileSize(){return Math.floor(canvas.width/15)}function getFontSize(t){return Math.max(1,Math.floor(getTileSize()*t))}function applyRenderState(){ctx.setTransform(1,0,0,1,0,0),ctx.imageSmoothingEnabled=!1,ctx.fillStyle="#fff",ctx.textBaseline="top",ctx.textAlign="left"}async function startFontSystem(){await document.fonts.ready}function addText(t,e,a,i=1){const n=createUUID();return texts.set(n,{id:n,text:t,x:e,y:a,scale:i}),n}function removeText(t){texts.delete(t)}function replaceText(t,e,a,i,n){const o=texts.get(t);o&&(o.text=e,o.x=a,o.y=i,void 0!==n&&(o.scale=n))}function drawTexts(){if(0!==texts.size)for(const t of texts.values()){const e=GetTilePos(t.x,t.y),a=getFontSize(t.scale);ctx.font=`${a}px Font`,ctx.fillText(t.text,Math.floor(e.x),Math.floor(e.y))}}startFontSystem();
+const canvas = document.getElementById("screen");
+const ctx = canvas.getContext("2d");
+ctx.imageSmoothingEnabled = false;
+const SCREEN_SIZE_X = 15;
+const SCREEN_SIZE_Y = 12;
+const TILE_SIZE = 22;
+export function GetTilePos(x, y) {
+    const TILE_W = canvas.width / SCREEN_SIZE_X;
+    const TILE_H = canvas.height / SCREEN_SIZE_Y;
+    const centerX = Math.floor(TILE_W * 7);
+    return {
+        x: Math.ceil(centerX + x * TILE_W),
+        y: Math.ceil(y * TILE_H),
+        w: Math.ceil(TILE_W),
+        h: Math.ceil(TILE_H)
+    };
+}
+export const BG_tile_imgs = { isLoaded: false };
+export const Char_tile_imgs = { isLoaded: false };
+export const Dialog_tile_imgs = { isLoaded: false };
+export const BGimg = new Image();
+BGimg.src = "./Assets/Image/BG.png";
+export const Dialogimg = new Image();
+Dialogimg.src = "./Assets/Image/dialog.png";
+const Charimg_cup = new Image();
+const Charimg_kris = new Image();
+function createTile(img, sx, sy, sw, sh, scale = 1) {
+    const tile = document.createElement("canvas");
+    tile.width = Math.round(sw * scale);
+    tile.height = Math.round(sh * scale);
+    const tctx = tile.getContext("2d");
+    tctx.imageSmoothingEnabled = false;
+    tctx.drawImage(img, Math.round(sx), Math.round(sy), Math.round(sw), Math.round(sh), 0, 0, tile.width, tile.height);
+    return tile;
+}
+function OnImageLoad(img, dic, nx, ny, startingIndex = 0) {
+    let index = startingIndex;
+    for (let y = 0; y < ny; y++) {
+        for (let x = 0; x < nx; x++) {
+            dic[index++] = createTile(img, x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+        }
+    }
+}
+BGimg.onload = () => {
+    OnImageLoad(BGimg, BG_tile_imgs, 24, 25);
+    BG_tile_imgs.isLoaded = true;
+};
+Dialogimg.onload = () => {
+    OnImageLoad(Dialogimg, Dialog_tile_imgs, 4, 3);
+    Dialog_tile_imgs.isLoaded = true;
+};
+Charimg_cup.onload = () => {
+    OnImageLoad(Charimg_cup, Char_tile_imgs, 8, 2);
+    Charimg_kris.onload = () => {
+        OnImageLoad(Charimg_kris, Char_tile_imgs, 8, 3, Object.keys(Char_tile_imgs).length - 1);
+        Char_tile_imgs.isLoaded = true;
+    };
+    Charimg_kris.src = "./Assets/Image/kris.png";
+};
+Charimg_cup.src = "./Assets/Image/cuptain.png";
+export function clearScreen() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+}
+export function DrawTile(img, x, y, flipX = false, flipY = false) {
+    if (!img)
+        return;
+    const t = GetTilePos(x, y);
+    ctx.save();
+    ctx.translate(t.x + t.w / 2, t.y + t.h / 2);
+    ctx.scale(flipX ? -1 : 1, flipY ? -1 : 1);
+    ctx.imageSmoothingEnabled = false;
+    ctx.drawImage(img, -t.w / 2, -t.h / 2, t.w, t.h);
+    ctx.restore();
+}
+export const texts = new Map();
+export function createUUID() {
+    return crypto.randomUUID();
+}
+export function getTileSize() {
+    return Math.floor(canvas.width / SCREEN_SIZE_X);
+}
+export function getFontSize(scale) {
+    return Math.max(1, Math.floor(getTileSize() * scale));
+}
+export function applyRenderState() {
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.imageSmoothingEnabled = false;
+    ctx.fillStyle = "#fff";
+    ctx.textBaseline = "top";
+    ctx.textAlign = "left";
+}
+export async function startFontSystem() {
+    await document.fonts.ready;
+}
+startFontSystem();
+export function addText(text, x, y, scale = 1) {
+    const id = createUUID();
+    texts.set(id, { id, text, x, y, scale });
+    return id;
+}
+export function removeText(uuid) {
+    texts.delete(uuid);
+}
+export function replaceText(uuid, text, x, y, scale) {
+    const item = texts.get(uuid);
+    if (!item)
+        return;
+    item.text = text;
+    item.x = x;
+    item.y = y;
+    if (scale !== undefined)
+        item.scale = scale;
+}
+export function drawTexts() {
+    if (texts.size === 0)
+        return;
+    for (const item of texts.values()) {
+        const t = GetTilePos(item.x, item.y);
+        const fontSize = getFontSize(item.scale);
+        ctx.font = `${fontSize}px Font`;
+        ctx.fillText(item.text, Math.floor(t.x), Math.floor(t.y));
+    }
+}
