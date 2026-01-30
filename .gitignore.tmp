@@ -1,0 +1,5 @@
+*.ts
+*.bat
+*.gitignore
+*.zip
+**/tsconfig.json

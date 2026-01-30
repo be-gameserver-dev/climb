@@ -1,1 +1,168 @@
-const canvas=document.getElementById("screen"),ctx=canvas.getContext("2d");ctx.imageSmoothingEnabled=!1;const SCREEN_SIZE_X=15,SCREEN_SIZE_Y=12,TILE_SIZE=22;export function GetTilePos(t,e){const o=canvas.width/15,a=canvas.height/12,i=Math.floor(7*o);return{x:Math.ceil(i+t*o),y:Math.ceil(e*a),w:Math.ceil(o),h:Math.ceil(a)}}export const BG_tile_imgs={isLoaded:!1};export const Char_tile_imgs={isLoaded:!1};export const Dialog_tile_imgs={isLoaded:!1};export const BGimg=new Image;BGimg.src="./Assets/Image/BG.png";export const Dialogimg=new Image;Dialogimg.src="./Assets/Image/dialog.png";const Charimg_cup=new Image,Charimg_kris=new Image;function createTile(t,e,o,a,i,n=1){const s=document.createElement("canvas");s.width=Math.round(a*n),s.height=Math.round(i*n);const r=s.getContext("2d");return r.imageSmoothingEnabled=!1,r.drawImage(t,Math.round(e),Math.round(o),Math.round(a),Math.round(i),0,0,s.width,s.height),s}function OnImageLoad(t,e,o,a,i=0){let n=i;for(let i=0;i<a;i++)for(let a=0;a<o;a++)e[n++]=createTile(t,22*a,22*i,22,22)}BGimg.onload=()=>{OnImageLoad(BGimg,BG_tile_imgs,24,25),BG_tile_imgs.isLoaded=!0},Dialogimg.onload=()=>{OnImageLoad(Dialogimg,Dialog_tile_imgs,4,3),Dialog_tile_imgs.isLoaded=!0},Charimg_cup.onload=()=>{OnImageLoad(Charimg_cup,Char_tile_imgs,8,2),Charimg_kris.onload=()=>{OnImageLoad(Charimg_kris,Char_tile_imgs,8,3,Object.keys(Char_tile_imgs).length-1),Char_tile_imgs.isLoaded=!0},Charimg_kris.src="./Assets/Image/kris.png"},Charimg_cup.src="./Assets/Image/cuptain.png";export function clearScreen(){ctx.clearRect(0,0,canvas.width,canvas.height)}export function DrawTile(t,e,o,a=!1,i=!1){if(!t)return;const n=GetTilePos(e,o);ctx.save(),ctx.translate(n.x+n.w/2,n.y+n.h/2),ctx.scale(a?-1:1,i?-1:1),ctx.imageSmoothingEnabled=!1,ctx.drawImage(t,-n.w/2,-n.h/2,n.w,n.h),ctx.restore()}export function drawModel(t,e,o,a){const i=e.replace(/[\r\n]/g," ").trim().split(/\s+/);let n=0,s=0,r=0,c=0,l=!1,g=!1,m=1;function x(e){if("#"===e[0]){const t=e.slice(1);return void("n"===t?(r=0,c+=1):t.startsWith("xo")?n=parseFloat(t.slice(2)):t.startsWith("yo")?s=parseFloat(t.slice(2)):"fx"===t?l=!l:"fy"===t&&(g=!g))}const i=Number(e);Number.isInteger(i)&&null!=t[i]&&(DrawTile(t[i],o+r+n,a+c+s,l,g),r+=1)}for(const t of i){if("#"===t[0]){const e=t.slice(1);if(e.startsWith("r")){const t=Number(e.slice(1));Number.isInteger(t)&&t>0&&(m=t);continue}}for(let e=0;e<m;e++)x(t);m=1}}export const texts=new Map;export function createUUID(){return crypto.randomUUID()}export function getTileSize(){return Math.floor(canvas.width/15)}export function getFontSize(t){return Math.max(1,Math.floor(getTileSize()*t))}export function applyRenderState(){ctx.setTransform(1,0,0,1,0,0),ctx.imageSmoothingEnabled=!1,ctx.fillStyle="#fff",ctx.textBaseline="top",ctx.textAlign="left"}export async function startFontSystem(){await document.fonts.ready}startFontSystem();export function addText(t,e,o,a=1){const i=createUUID();return texts.set(i,{id:i,text:t,x:e,y:o,scale:a}),i}export function removeText(t){texts.delete(t)}export function replaceText(t,e,o,a,i){const n=texts.get(t);n&&(n.text=e,n.x=o,n.y=a,void 0!==i&&(n.scale=i))}export function drawTexts(){if(0!==texts.size)for(const t of texts.values()){const e=GetTilePos(t.x,t.y),o=getFontSize(t.scale);ctx.font=`${o}px Font`,ctx.fillText(t.text,Math.floor(e.x),Math.floor(e.y))}}
+const canvas = document.getElementById("screen");
+const ctx = canvas.getContext("2d");
+ctx.imageSmoothingEnabled = false;
+const SCREEN_SIZE_X = 15;
+const SCREEN_SIZE_Y = 12;
+const TILE_SIZE = 22;
+export function GetTilePos(x, y) {
+    const TILE_W = canvas.width / SCREEN_SIZE_X;
+    const TILE_H = canvas.height / SCREEN_SIZE_Y;
+    const centerX = Math.floor(TILE_W * 7);
+    return {
+        x: Math.ceil(centerX + x * TILE_W),
+        y: Math.ceil(y * TILE_H),
+        w: Math.ceil(TILE_W),
+        h: Math.ceil(TILE_H)
+    };
+}
+export const BG_tile_imgs = { isLoaded: false };
+export const Char_tile_imgs = { isLoaded: false };
+export const Dialog_tile_imgs = { isLoaded: false };
+export const BGimg = new Image();
+BGimg.src = "./Assets/Image/BG.png";
+export const Dialogimg = new Image();
+Dialogimg.src = "./Assets/Image/dialog.png";
+const Charimg_cup = new Image();
+const Charimg_kris = new Image();
+function createTile(img, sx, sy, sw, sh, scale = 1) {
+    const tile = document.createElement("canvas");
+    tile.width = Math.round(sw * scale);
+    tile.height = Math.round(sh * scale);
+    const tctx = tile.getContext("2d");
+    tctx.imageSmoothingEnabled = false;
+    tctx.drawImage(img, Math.round(sx), Math.round(sy), Math.round(sw), Math.round(sh), 0, 0, tile.width, tile.height);
+    return tile;
+}
+function OnImageLoad(img, dic, nx, ny, startingIndex = 0) {
+    let index = startingIndex;
+    for (let y = 0; y < ny; y++) {
+        for (let x = 0; x < nx; x++) {
+            dic[index++] = createTile(img, x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE);
+        }
+    }
+}
+BGimg.onload = () => {
+    OnImageLoad(BGimg, BG_tile_imgs, 24, 25);
+    BG_tile_imgs.isLoaded = true;
+};
+Dialogimg.onload = () => {
+    OnImageLoad(Dialogimg, Dialog_tile_imgs, 4, 3);
+    Dialog_tile_imgs.isLoaded = true;
+};
+Charimg_cup.onload = () => {
+    OnImageLoad(Charimg_cup, Char_tile_imgs, 8, 2);
+    Charimg_kris.onload = () => {
+        OnImageLoad(Charimg_kris, Char_tile_imgs, 8, 3, Object.keys(Char_tile_imgs).length - 1);
+        Char_tile_imgs.isLoaded = true;
+    };
+    Charimg_kris.src = "./Assets/Image/kris.png";
+};
+Charimg_cup.src = "./Assets/Image/cuptain.png";
+export function clearScreen() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+}
+export function DrawTile(img, x, y, flipX = false, flipY = false) {
+    if (!img)
+        return;
+    const t = GetTilePos(x, y);
+    ctx.save();
+    ctx.translate(t.x + t.w / 2, t.y + t.h / 2);
+    ctx.scale(flipX ? -1 : 1, flipY ? -1 : 1);
+    ctx.imageSmoothingEnabled = false;
+    ctx.drawImage(img, -t.w / 2, -t.h / 2, t.w, t.h);
+    ctx.restore();
+}
+export function drawModel(tile, model, x, y) {
+    const submodel = model.replace(/[\r\n]/g, " ").trim().split(/\s+/);
+    let xo = 0, yo = 0;
+    let xoffset = 0, yoffset = 0;
+    let flipX = false, flipY = false;
+    let repeat = 1;
+    function execToken(value) {
+        if (value[0] === "#") {
+            const cmd = value.slice(1);
+            if (cmd === "n") {
+                xoffset = 0;
+                yoffset += 1;
+            }
+            else if (cmd.startsWith("xo"))
+                xo = parseFloat(cmd.slice(2));
+            else if (cmd.startsWith("yo"))
+                yo = parseFloat(cmd.slice(2));
+            else if (cmd === "fx")
+                flipX = !flipX;
+            else if (cmd === "fy")
+                flipY = !flipY;
+            return;
+        }
+        const idx = Number(value);
+        if (!Number.isInteger(idx) || tile[idx] == null)
+            return;
+        DrawTile(tile[idx], x + xoffset + xo, y + yoffset + yo, flipX, flipY);
+        xoffset += 1;
+    }
+    for (const value of submodel) {
+        if (value[0] === "#") {
+            const cmd = value.slice(1);
+            if (cmd.startsWith("r")) {
+                const n = Number(cmd.slice(1));
+                if (Number.isInteger(n) && n > 0)
+                    repeat = n;
+                continue;
+            }
+        }
+        for (let i = 0; i < repeat; i++) {
+            execToken(value);
+        }
+        repeat = 1;
+    }
+}
+export const texts = new Map();
+export function createUUID() {
+    return crypto.randomUUID();
+}
+export function getTileSize() {
+    return Math.floor(canvas.width / SCREEN_SIZE_X);
+}
+export function getFontSize(scale) {
+    return Math.max(1, Math.floor(getTileSize() * scale));
+}
+export function applyRenderState() {
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.imageSmoothingEnabled = false;
+    ctx.fillStyle = "#fff";
+    ctx.textBaseline = "top";
+    ctx.textAlign = "left";
+}
+export async function startFontSystem() {
+    await document.fonts.ready;
+}
+startFontSystem();
+export function addText(text, x, y, scale = 1) {
+    const id = createUUID();
+    texts.set(id, { id, text, x, y, scale });
+    return id;
+}
+export function removeText(uuid) {
+    texts.delete(uuid);
+}
+export function replaceText(uuid, text, x, y, scale) {
+    const item = texts.get(uuid);
+    if (!item)
+        return;
+    item.text = text;
+    item.x = x;
+    item.y = y;
+    if (scale !== undefined)
+        item.scale = scale;
+}
+export function drawTexts() {
+    if (texts.size === 0)
+        return;
+    for (const item of texts.values()) {
+        const t = GetTilePos(item.x, item.y);
+        const fontSize = getFontSize(item.scale);
+        ctx.font = `${fontSize}px Font`;
+        ctx.fillText(item.text, Math.floor(t.x), Math.floor(t.y));
+    }
+}
